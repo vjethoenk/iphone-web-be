@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
-
     @Id
     @UuidGenerator
     @GeneratedValue(strategy = GenerationType.UUID)

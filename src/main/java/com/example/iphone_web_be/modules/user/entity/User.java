@@ -1,16 +1,13 @@
 package com.example.iphone_web_be.modules.user.entity;
 
+import com.example.iphone_web_be.common.entity.BaseEntity;
 import com.example.iphone_web_be.modules.role.entity.Role;
 import com.example.iphone_web_be.modules.user.enums.Gender;
 import com.example.iphone_web_be.modules.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,10 +19,7 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "users")
 @Entity
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    String id;
+public class User extends BaseEntity {
 
     @Column(name = "customer_code",  unique = true, length = 20)
     String customerCode;
@@ -70,13 +64,5 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     UserStatus status;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    LocalDateTime updatedAt;
 
 }
