@@ -4,7 +4,7 @@ services:
     container_name: iphone-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root1705
+      MYSQL_ROOT_PASSWORD: ${DBMS_PASSWORD}
       MYSQL_DATABASE: iphone-service
     volumes:
       - iphone_mysql_data:/var/lib/mysql
