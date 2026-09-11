@@ -9,7 +9,7 @@ services:
     volumes:
       - iphone_mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pYOUR_STRONG_PASSWORD"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DBMS_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
