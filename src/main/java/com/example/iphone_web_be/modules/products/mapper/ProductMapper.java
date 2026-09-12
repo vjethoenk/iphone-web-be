@@ -20,6 +20,8 @@ public interface ProductMapper {
 
     ProductResponse toProductResponse(Product product);
 
+    ProductBaseResponse toProductBaseResponse(Product product);
+
     @Mapping(target = "product", ignore = true)
     ProductSpecification toProductSpecification(ProductSpecificationRequest request);
 

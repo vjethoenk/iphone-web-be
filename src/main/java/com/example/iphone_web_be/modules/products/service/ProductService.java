@@ -146,9 +146,10 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public ProductDetailResponse getProductDetail(String id) {
-        Product product = productRepository.findById(id)
+    public ProductDetailResponse getProductDetail(String slug) {
+        Product product = productRepository.findBySlug(slug)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        var id = product.getId();
 
         List<ProductVariant> variants = productVariantRepository.findByProductId(id);
         List<ProductImage> images = productImageRepository.findByProductId(id);
@@ -216,6 +217,10 @@ public class ProductService {
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .build();
+    }
+
+    public List<ProductBaseResponse> getAll(){
+        return productRepository.findAll().stream().map(productMapper::toProductBaseResponse).toList();
     }
 
     private String generateSku(String productName, String colorName, String storageName) {
