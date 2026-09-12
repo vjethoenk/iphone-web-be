@@ -28,7 +28,8 @@ public class SecurityConfig {
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-            "/category", "/category/**"
+            "/category", "/category/**", "color", "/color/**"
+            ,"storage", "/storage/**"
     };
     @Autowired
     private CustomJwtDecoder customJwtDecoder;

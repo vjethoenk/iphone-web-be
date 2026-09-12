@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface StorageRepository extends JpaRepository<Storage, String> {
     Optional<Storage> findByName(String name);
+    boolean existsByName(String name);
 }

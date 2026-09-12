@@ -8,10 +8,7 @@ import com.example.iphone_web_be.modules.category.repository.CategoryRepository;
 import com.example.iphone_web_be.modules.products.dto.request.ProductCreationRequest;
 import com.example.iphone_web_be.modules.products.dto.request.ProductImageRequest;
 import com.example.iphone_web_be.modules.products.dto.request.ProductVariantRequest;
-import com.example.iphone_web_be.modules.products.dto.response.ProductImageResponse;
-import com.example.iphone_web_be.modules.products.dto.response.ProductResponse;
-import com.example.iphone_web_be.modules.products.dto.response.ProductSpecificationResponse;
-import com.example.iphone_web_be.modules.products.dto.response.ProductVariantResponse;
+import com.example.iphone_web_be.modules.products.dto.response.*;
 import com.example.iphone_web_be.modules.products.entity.*;
 import com.example.iphone_web_be.modules.products.mapper.ProductMapper;
 import com.example.iphone_web_be.modules.products.repository.*;
@@ -42,11 +39,9 @@ public class ProductService {
 
     @Transactional
     public ProductResponse createProduct(ProductCreationRequest request) {
-        // 1. Kiểm tra danh mục
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        // 2. Xử lý và kiểm tra slug
         String slug = StringUtils.hasText(request.getSlug())
                 ? generateSlug(request.getSlug())
                 : generateSlug(request.getName());
@@ -55,7 +50,7 @@ public class ProductService {
             throw new AppException(ErrorCode.PRODUCT_EXISTED);
         }
 
-        // 3. Map và lưu Product
+        //Map và lưu Product
         Product product = productMapper.toProduct(request);
         product.setCategory(category);
         product.setSlug(slug);
@@ -69,7 +64,7 @@ public class ProductService {
 
         Product savedProduct = productRepository.save(product);
 
-        // 4. Lưu Thông số kỹ thuật (Specification) nếu có
+        //Lưu Thông số kỹ thuật (Specification)
         ProductSpecificationResponse specResponse = null;
         if (request.getSpecification() != null) {
             ProductSpecification specification = productMapper.toProductSpecification(request.getSpecification());
@@ -78,7 +73,7 @@ public class ProductService {
             specResponse = productMapper.toProductSpecificationResponse(savedSpec);
         }
 
-        // 5. Lưu Các biến thể sản phẩm (Variants) nếu có
+        // Lưu Các biến thể sản phẩm (Variants)
         List<ProductVariantResponse> variantResponses = new ArrayList<>();
         Map<String, ProductVariant> createdVariantsMap = new HashMap<>();
         Set<String> variantUniqueKeys = new HashSet<>();
@@ -116,7 +111,7 @@ public class ProductService {
             }
         }
 
-        // 6. Lưu Các hình ảnh sản phẩm (Images) nếu có
+        // Lưu Các hình ảnh sản phẩm (Images)
         List<ProductImageResponse> imageResponses = new ArrayList<>();
         if (request.getImages() != null && !request.getImages().isEmpty()) {
             for (ProductImageRequest imageReq : request.getImages()) {
@@ -142,7 +137,6 @@ public class ProductService {
             }
         }
 
-        // 7. Tạo Response trả về
         ProductResponse response = productMapper.toProductResponse(savedProduct);
         response.setSpecification(specResponse);
         response.setVariants(variantResponses);

@@ -53,6 +53,7 @@ public enum ErrorCode {
     CATEGORY_EXISTED(1041, "Tên Category đã tồn tại!", HttpStatus.BAD_REQUEST),
     SLUG_EXISTED(1042, "Slug Category đã tồn tại!", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_EXISTED(1043, "Category không tồn tại!", HttpStatus.NOT_FOUND),
+    COLOR_EXISTED(1044, "Color đã tồn tại!", HttpStatus.BAD_REQUEST),
     ;
 
 
