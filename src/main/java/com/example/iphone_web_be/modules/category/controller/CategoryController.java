@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RequestMapping("/category")
 @RestController
@@ -27,5 +29,11 @@ public class CategoryController {
     ApiResponse<CategoryResponse> getBySlug(@PathVariable String slug){
         return ApiResponse.<CategoryResponse>builder()
                 .result(categoryService.getBySlug(slug)).build();
+    }
+
+    @GetMapping
+    ApiResponse<List<CategoryResponse>> getAll(){
+        return ApiResponse.<List<CategoryResponse>>builder()
+                .result(categoryService.getAll()).build();
     }
 }

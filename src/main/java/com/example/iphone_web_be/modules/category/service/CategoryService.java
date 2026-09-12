@@ -15,6 +15,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -53,5 +55,9 @@ public class CategoryService {
                 ));
 
         return categoryMapper.toCategoryResponse(category);
+    }
+
+    public List<CategoryResponse> getAll (){
+        return categoryRepository.findAll().stream().map(categoryMapper::toCategoryResponse).toList();
     }
 }
