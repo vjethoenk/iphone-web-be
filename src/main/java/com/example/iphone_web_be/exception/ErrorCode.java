@@ -44,6 +44,15 @@ public enum ErrorCode {
     INVALID_DATE_RANGE(1032, "fromDate phải nhỏ hơn hoặc bằng toDate", HttpStatus.BAD_REQUEST),
     ACCOUNT_NOT_EXISTED(1033, "Tài khoản không tồn tại", HttpStatus.NOT_FOUND),
     OTP_SEND_FAILED(1034, "Gửi mã OTP thất bại, vui lòng thử lại", HttpStatus.INTERNAL_SERVER_ERROR),
+    CATEGORY_NOT_FOUND(1035, "Danh mục không tồn tại", HttpStatus.NOT_FOUND),
+    PRODUCT_NOT_FOUND(1036, "Sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
+    PRODUCT_EXISTED(1037, "Sản phẩm hoặc mã slug đã tồn tại", HttpStatus.BAD_REQUEST),
+    COLOR_NOT_FOUND(1038, "Màu sắc không tồn tại", HttpStatus.NOT_FOUND),
+    STORAGE_NOT_FOUND(1039, "Dung lượng bộ nhớ không tồn tại", HttpStatus.NOT_FOUND),
+    SKU_EXISTED(1040, "Mã SKU biến thể đã tồn tại", HttpStatus.BAD_REQUEST),
+    CATEGORY_EXISTED(1041, "Tên Category đã tồn tại!", HttpStatus.BAD_REQUEST),
+    SLUG_EXISTED(1042, "Slug Category đã tồn tại!", HttpStatus.BAD_REQUEST),
+    CATEGORY_NOT_EXISTED(1043, "Category không tồn tại!", HttpStatus.NOT_FOUND),
     ;
 
 
