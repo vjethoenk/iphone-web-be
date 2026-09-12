@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -220,7 +221,33 @@ public class ProductService {
     }
 
     public List<ProductBaseResponse> getAll(){
-        return productRepository.findAll().stream().map(productMapper::toProductBaseResponse).toList();
+        return productRepository.findAll().stream().map(product -> {
+            ProductBaseResponse response = productMapper.toProductBaseResponse(product);
+//           response.setCategory(product.getCategory().getName());
+            List<ProductVariant> variants = productVariantRepository.findByProductId(product.getId());
+            BigDecimal minPrice = variants.stream()
+                    .map(ProductVariant::getPrice)
+                    .filter(Objects::nonNull)
+                    .min(BigDecimal::compareTo)
+                    .orElse(null);
+            response.setPrice(minPrice);
+            return response;
+        }).toList();
+    }
+
+    public List<ProductBaseResponse> getByFeatured(){
+        return productRepository.findByFeatured(true).stream().map(product -> {
+            ProductBaseResponse response = productMapper.toProductBaseResponse(product);
+//            response.setCategory(product.getCategory().getName());
+            List<ProductVariant> variants = productVariantRepository.findByProductId(product.getId());
+            BigDecimal minPrice = variants.stream()
+                    .map(ProductVariant::getPrice)
+                    .filter(Objects::nonNull)
+                    .min(BigDecimal::compareTo)
+                    .orElse(null);
+            response.setPrice(minPrice);
+            return response;
+        }).toList();
     }
 
     private String generateSku(String productName, String colorName, String storageName) {

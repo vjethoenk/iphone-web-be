@@ -40,4 +40,9 @@ public class ProductController {
     ApiResponse<List<ProductBaseResponse>> getAll(){
         return ApiResponse.<List<ProductBaseResponse>>builder().result(productService.getAll()).build();
     }
+
+    @GetMapping("/featured")
+    ApiResponse<List<ProductBaseResponse>> getByFeatured(){
+        return ApiResponse.<List<ProductBaseResponse>>builder().result(productService.getByFeatured()).build();
+    }
 }
