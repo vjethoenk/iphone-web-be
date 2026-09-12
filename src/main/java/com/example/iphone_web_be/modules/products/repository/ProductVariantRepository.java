@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, String> {
     boolean existsBySku(String sku);
+    boolean existsByProductIdAndColorIdAndStorageId(String productId, String colorId, String storageId);
     List<ProductVariant> findByProductId(String productId);
 }

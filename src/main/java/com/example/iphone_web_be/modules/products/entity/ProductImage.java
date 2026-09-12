@@ -10,7 +10,8 @@ import lombok.experimental.FieldDefaults;
         name = "product_images",
         indexes = {
                 @Index(name = "idx_product_image_product", columnList = "product_id"),
-                @Index(name = "idx_product_image_variant", columnList = "variant_id")
+                @Index(name = "idx_product_image_variant", columnList = "variant_id"),
+                @Index(name = "idx_product_image_color", columnList = "color_id")
         }
 )
 @Getter
@@ -32,6 +33,10 @@ public class ProductImage extends BaseEntity {
      * - Ảnh mặt trước dùng chung → variant = null
      * - Ảnh iPhone màu Black → variant = variant Black
      */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "color_id")
+    Color color;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "variant_id")
     ProductVariant variant;

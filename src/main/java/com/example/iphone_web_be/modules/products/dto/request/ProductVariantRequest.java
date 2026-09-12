@@ -22,7 +22,6 @@ public class ProductVariantRequest {
     @NotBlank(message = "Dung lượng không được để trống")
     String storageId;
 
-    @NotBlank(message = "Mã SKU không được để trống")
     String sku;
 
     @NotNull(message = "Giá sản phẩm không được để trống")

@@ -24,4 +24,11 @@ public class ProductController {
                 .result(productService.createProduct(request))
                 .build();
     }
+
+    @GetMapping("/{id}")
+    ApiResponse<com.example.iphone_web_be.modules.products.dto.response.ProductDetailResponse> getProductDetail(@PathVariable String id) {
+        return ApiResponse.<com.example.iphone_web_be.modules.products.dto.response.ProductDetailResponse>builder()
+                .result(productService.getProductDetail(id))
+                .build();
+    }
 }

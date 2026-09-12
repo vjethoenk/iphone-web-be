@@ -13,7 +13,12 @@ import lombok.experimental.FieldDefaults;
 public class ProductImageRequest {
 
     /**
-     * ID của biến thể (ProductVariant) - Có thể null nếu là ảnh chung của sản phẩm.
+     * ID của màu sắc (Color) - Có thể null nếu là ảnh chung của sản phẩm.
+     */
+    String colorId;
+
+    /**
+     * ID của biến thể (ProductVariant) - Có thể null.
      */
     String variantId;
 

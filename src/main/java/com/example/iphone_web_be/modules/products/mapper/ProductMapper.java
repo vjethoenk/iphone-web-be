@@ -34,9 +34,11 @@ public interface ProductMapper {
     ProductVariantResponse toProductVariantResponse(ProductVariant variant);
 
     @Mapping(target = "product", ignore = true)
+    @Mapping(target = "color", ignore = true)
     @Mapping(target = "variant", ignore = true)
     ProductImage toProductImage(ProductImageRequest request);
 
+    @Mapping(source = "color.id", target = "colorId")
     @Mapping(source = "variant.id", target = "variantId")
     ProductImageResponse toProductImageResponse(ProductImage image);
 

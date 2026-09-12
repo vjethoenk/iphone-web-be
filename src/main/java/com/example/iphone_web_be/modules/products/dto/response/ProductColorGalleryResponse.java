@@ -3,7 +3,7 @@ package com.example.iphone_web_be.modules.products.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -11,14 +11,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductImageResponse {
+public class ProductColorGalleryResponse {
     String id;
-    String colorId;
-    String variantId;
-    String imageUrl;
-    String altText;
-    int displayOrder;
-    boolean primary;
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
+    String name;
+    String hexCode;
+    List<ProductImageResponse> images;
 }
