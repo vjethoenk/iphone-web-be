@@ -7,6 +7,7 @@ import com.example.iphone_web_be.modules.category.entity.Category;
 import com.example.iphone_web_be.modules.category.repository.CategoryRepository;
 import com.example.iphone_web_be.modules.products.dto.request.ProductCreationRequest;
 import com.example.iphone_web_be.modules.products.dto.request.ProductImageRequest;
+import com.example.iphone_web_be.modules.products.dto.request.ProductUpdateRequest;
 import com.example.iphone_web_be.modules.products.dto.request.ProductVariantRequest;
 import com.example.iphone_web_be.modules.products.dto.response.*;
 import com.example.iphone_web_be.modules.products.entity.*;
@@ -146,6 +147,197 @@ public class ProductService {
         return response;
     }
 
+    @Transactional
+    public ProductResponse updateProduct(String slug, ProductUpdateRequest request) {
+        Product product = productRepository.findBySlug(slug)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        // Cập nhật Category nếu có
+        if (StringUtils.hasText(request.getCategoryId())) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+            product.setCategory(category);
+        }
+
+        // Cập nhật Slug nếu có
+        if (StringUtils.hasText(request.getSlug())) {
+            String newSlug = generateSlug(request.getSlug());
+            if (!newSlug.equals(product.getSlug()) && productRepository.existsBySlug(newSlug)) {
+                throw new AppException(ErrorCode.PRODUCT_EXISTED);
+            }
+            product.setSlug(newSlug);
+        } else if (StringUtils.hasText(request.getName())) {
+            String newSlug = generateSlug(request.getName());
+            if (!newSlug.equals(product.getSlug()) && productRepository.existsBySlug(newSlug)) {
+                throw new AppException(ErrorCode.PRODUCT_EXISTED);
+            }
+            product.setSlug(newSlug);
+        }
+
+        // Cập nhật các trường cơ bản
+        if (StringUtils.hasText(request.getName())) {
+            product.setName(request.getName());
+        }
+        if (StringUtils.hasText(request.getBrand())) {
+            product.setBrand(request.getBrand());
+        }
+        if (StringUtils.hasText(request.getShortDescription())) {
+            product.setShortDescription(request.getShortDescription());
+        }
+        if (StringUtils.hasText(request.getDescription())) {
+            product.setDescription(request.getDescription());
+        }
+        if (StringUtils.hasText(request.getThumbnail())) {
+            product.setThumbnail(request.getThumbnail());
+        }
+        if (request.getStatus() != null) {
+            product.setStatus(request.getStatus());
+        }
+        if (request.getFeatured() != null) {
+            product.setFeatured(request.getFeatured());
+        }
+
+        Product savedProduct = productRepository.save(product);
+
+        // Cập nhật Specification: xóa cũ và tạo mới nếu request có
+        ProductSpecificationResponse specResponse = null;
+        if (request.getSpecification() != null) {
+            productSpecificationRepository.findByProductId(savedProduct.getId())
+                    .ifPresent(productSpecificationRepository::delete);
+            productSpecificationRepository.flush();
+
+            ProductSpecification specification = productMapper.toProductSpecification(request.getSpecification());
+            specification.setProduct(savedProduct);
+            ProductSpecification savedSpec = productSpecificationRepository.save(specification);
+            specResponse = productMapper.toProductSpecificationResponse(savedSpec);
+        } else {
+            specResponse = productSpecificationRepository.findByProductId(savedProduct.getId())
+                    .map(productMapper::toProductSpecificationResponse)
+                    .orElse(null);
+        }
+
+        // Cập nhật Variants: xóa tất cả cũ và tạo lại từ request nếu có
+        List<ProductVariantResponse> variantResponses = new ArrayList<>();
+        Map<String, ProductVariant> createdVariantsMap = new HashMap<>();
+        Set<String> variantUniqueKeys = new HashSet<>();
+
+        if (request.getVariants() != null) {
+            // Xóa các variant cũ (cùng với images tham chiếu chúng phải được xử lý trước)
+            productImageRepository.findByProductId(savedProduct.getId())
+                    .forEach(productImageRepository::delete);
+            productImageRepository.flush();
+
+            List<ProductVariant> oldVariants = productVariantRepository.findByProductId(savedProduct.getId());
+            if (!oldVariants.isEmpty()) {
+                productVariantRepository.deleteAll(oldVariants);
+                productVariantRepository.flush();
+            }
+
+            for (ProductVariantRequest variantReq : request.getVariants()) {
+                String uniqueKey = variantReq.getColorId() + "_" + variantReq.getStorageId();
+                if (!variantUniqueKeys.add(uniqueKey)) {
+                    throw new AppException(ErrorCode.PRODUCT_EXISTED);
+                }
+
+                Color color = colorRepository.findById(variantReq.getColorId())
+                        .orElseThrow(() -> new AppException(ErrorCode.COLOR_NOT_FOUND));
+
+                Storage storage = storageRepository.findById(variantReq.getStorageId())
+                        .orElseThrow(() -> new AppException(ErrorCode.STORAGE_NOT_FOUND));
+
+                String generatedSku = StringUtils.hasText(variantReq.getSku())
+                        ? variantReq.getSku()
+                        : generateSku(savedProduct.getName(), color.getName(), storage.getName());
+
+                if (productVariantRepository.existsBySku(generatedSku)) {
+                    throw new AppException(ErrorCode.SKU_EXISTED);
+                }
+
+                ProductVariant variant = productMapper.toProductVariant(variantReq);
+                variant.setProduct(savedProduct);
+                variant.setColor(color);
+                variant.setStorage(storage);
+                variant.setSku(generatedSku);
+
+                ProductVariant savedVariant = productVariantRepository.save(variant);
+                createdVariantsMap.put(savedVariant.getId(), savedVariant);
+                variantResponses.add(productMapper.toProductVariantResponse(savedVariant));
+            }
+
+            // Cập nhật Images mới sau khi đã có variants mới
+            List<ProductImageResponse> imageResponses = new ArrayList<>();
+            if (request.getImages() != null && !request.getImages().isEmpty()) {
+                for (ProductImageRequest imageReq : request.getImages()) {
+                    ProductImage image = productMapper.toProductImage(imageReq);
+                    image.setProduct(savedProduct);
+
+                    if (StringUtils.hasText(imageReq.getColorId())) {
+                        Color color = colorRepository.findById(imageReq.getColorId())
+                                .orElseThrow(() -> new AppException(ErrorCode.COLOR_NOT_FOUND));
+                        image.setColor(color);
+                    }
+
+                    if (StringUtils.hasText(imageReq.getVariantId())) {
+                        ProductVariant variant = createdVariantsMap.containsKey(imageReq.getVariantId())
+                                ? createdVariantsMap.get(imageReq.getVariantId())
+                                : productVariantRepository.findById(imageReq.getVariantId())
+                                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                        image.setVariant(variant);
+                    }
+
+                    ProductImage savedImage = productImageRepository.save(image);
+                    imageResponses.add(productMapper.toProductImageResponse(savedImage));
+                }
+            }
+
+            ProductResponse response = productMapper.toProductResponse(savedProduct);
+            response.setSpecification(specResponse);
+            response.setVariants(variantResponses);
+            response.setImages(imageResponses);
+            return response;
+        }
+
+        // Nếu không thay đổi variants, giữ nguyên variants & images hiện tại
+        List<ProductVariant> currentVariants = productVariantRepository.findByProductId(savedProduct.getId());
+        List<ProductVariantResponse> currentVariantResponses = currentVariants.stream()
+                .map(productMapper::toProductVariantResponse)
+                .toList();
+
+        List<ProductImage> currentImages = productImageRepository.findByProductId(savedProduct.getId());
+        List<ProductImageResponse> currentImageResponses = currentImages.stream()
+                .map(productMapper::toProductImageResponse)
+                .toList();
+
+        ProductResponse response = productMapper.toProductResponse(savedProduct);
+        response.setSpecification(specResponse);
+        response.setVariants(currentVariantResponses);
+        response.setImages(currentImageResponses);
+
+        return response;
+    }
+
+    @Transactional
+    public void deleteProduct(String slug) {
+        Product product = productRepository.findBySlug(slug)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        // Xóa hình ảnh liên quan
+        productImageRepository.deleteAll(productImageRepository.findByProductId(product.getId()));
+
+        // Xóa các biến thể
+        List<ProductVariant> variants = productVariantRepository.findByProductId(product.getId());
+        if (!variants.isEmpty()) {
+            productVariantRepository.deleteAll(variants);
+        }
+
+        // Xóa thông số kỹ thuật
+        productSpecificationRepository.findByProductId(product.getId())
+                .ifPresent(productSpecificationRepository::delete);
+
+        // Xóa sản phẩm
+        productRepository.delete(product);
+    }
+
     @Transactional(readOnly = true)
     public ProductDetailResponse getProductDetail(String slug) {
         Product product = productRepository.findBySlug(slug)
@@ -249,6 +441,7 @@ public class ProductService {
             return response;
         }).toList();
     }
+
 
     private String generateSku(String productName, String colorName, String storageName) {
         String pCode = generateCode(productName);
