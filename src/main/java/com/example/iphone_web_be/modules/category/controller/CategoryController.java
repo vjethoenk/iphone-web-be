@@ -36,4 +36,10 @@ public class CategoryController {
         return ApiResponse.<List<CategoryResponse>>builder()
                 .result(categoryService.getAll()).build();
     }
+
+    @PutMapping("/{categoryId}")
+    ApiResponse<CategoryResponse> getByID(@PathVariable String categoryId, @RequestBody CategoryRequest request){
+        return ApiResponse.<CategoryResponse>builder()
+                .result(categoryService.getById(categoryId, request)).build();
+    }
 }

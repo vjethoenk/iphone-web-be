@@ -60,4 +60,12 @@ public class CategoryService {
     public List<CategoryResponse> getAll (){
         return categoryRepository.findAll().stream().map(categoryMapper::toCategoryResponse).toList();
     }
+
+    public CategoryResponse getById(String id, CategoryRequest request){
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.CATEGORY_EXISTED));
+
+        categoryMapper.updateCategory(category, request);
+
+        return categoryMapper.toCategoryResponse(categoryRepository.save(category));
+    }
 }

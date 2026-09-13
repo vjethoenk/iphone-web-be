@@ -412,25 +412,59 @@ public class ProductService {
                 .build();
     }
 
-    public List<ProductBaseResponse> getAll(){
-        return productRepository.findAll().stream().map(product -> {
-            ProductBaseResponse response = productMapper.toProductBaseResponse(product);
-//           response.setCategory(product.getCategory().getName());
-            List<ProductVariant> variants = productVariantRepository.findByProductId(product.getId());
-            BigDecimal minPrice = variants.stream()
-                    .map(ProductVariant::getPrice)
-                    .filter(Objects::nonNull)
-                    .min(BigDecimal::compareTo)
-                    .orElse(null);
-            response.setPrice(minPrice);
-            return response;
-        }).toList();
+//    public List<ProductBaseResponse> getAll() {
+//
+//        return productRepository.findAll()
+//                .stream()
+//                .map(this::toProductBaseResponse)
+//                .toList();
+//    }
+
+    private ProductBaseResponse toProductBaseResponse(Product product) {
+
+        ProductBaseResponse response =
+                productMapper.toProductBaseResponse(product);
+
+        List<ProductVariant> variants =
+                productVariantRepository.findByProductId(product.getId());
+
+        BigDecimal minPrice = variants.stream()
+                .map(ProductVariant::getPrice)
+                .filter(Objects::nonNull)
+                .min(BigDecimal::compareTo)
+                .orElse(null);
+
+        response.setPrice(minPrice);
+
+        return response;
+    }
+
+    public List<ProductBaseResponse> getProducts(String categorySlug) {
+
+        List<Product> products;
+
+        if (categorySlug == null || categorySlug.isBlank()) {
+
+            products = productRepository.findAll();
+
+        } else {
+
+            Category category = categoryRepository.findBySlug(categorySlug)
+                    .orElseThrow(() ->
+                            new AppException(ErrorCode.CATEGORY_NOT_EXISTED)
+                    );
+
+            products = productRepository.findByCategoryId(category.getId());
+        }
+
+        return products.stream()
+                .map(this::toProductBaseResponse)
+                .toList();
     }
 
     public List<ProductBaseResponse> getByFeatured(){
         return productRepository.findByFeatured(true).stream().map(product -> {
             ProductBaseResponse response = productMapper.toProductBaseResponse(product);
-//            response.setCategory(product.getCategory().getName());
             List<ProductVariant> variants = productVariantRepository.findByProductId(product.getId());
             BigDecimal minPrice = variants.stream()
                     .map(ProductVariant::getPrice)
@@ -442,6 +476,18 @@ public class ProductService {
         }).toList();
     }
 
+//    public List<ProductBaseResponse> getByCategory(String slug) {
+//
+//        Category category = categoryRepository.findBySlug(slug)
+//                .orElseThrow(() ->
+//                        new AppException(ErrorCode.CATEGORY_NOT_EXISTED)
+//                );
+//
+//        return productRepository.findByCategoryId(category.getId())
+//                .stream()
+//                .map(this::toProductBaseResponse)
+//                .toList();
+//    }
 
     private String generateSku(String productName, String colorName, String storageName) {
         String pCode = generateCode(productName);

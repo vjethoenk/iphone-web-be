@@ -52,8 +52,12 @@ public class ProductController {
     }
 
     @GetMapping
-    ApiResponse<List<ProductBaseResponse>> getAll(){
-        return ApiResponse.<List<ProductBaseResponse>>builder().result(productService.getAll()).build();
+    public ApiResponse<List<ProductBaseResponse>> getProducts(
+            @RequestParam(required = false) String category
+    ) {
+        return ApiResponse.<List<ProductBaseResponse>>builder()
+                .result(productService.getProducts(category))
+                .build();
     }
 
     @GetMapping("/featured")
